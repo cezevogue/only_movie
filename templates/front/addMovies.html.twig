@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+{{ parent() }}Ajout film
+{% endblock %}
+
+{% block h1 %}
+    Ajout film
+{% endblock %}
+
+
+
+{% block body %}
+
+    {{ form_start(form) }}
+
+    <label for="">Titre</label>
+    {{ form_row(form.title) }}
+
+    <label for="">Réalisateur</label>
+    {{ form_row(form.director) }}
+
+    <label for="">Synopsis</label>
+    {{ form_row(form.resume) }}
+
+    <label for="">Date de sortie</label>
+    {{ form_row(form.release_date) }}
+
+    <label for="">Affiche</label>
+    {{ form_row(form.cover) }}
+
+    {{ form_row(form.Valider) }}
+
+    {{ form_end(form) }}
+
+{% endblock %}
+
+
+
