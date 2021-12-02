@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Movies;
 use App\Form\MoviesType;
+use App\Repository\MoviesRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,11 +17,17 @@ class FrontController extends AbstractController
     /**
      * @Route("/", name="home")
      */
-    public function home()
+    public function home(MoviesRepository $repository)
     {
 
+        //ici on appelle le repository de Movies afin d'effectuer une requete de SELECT (affichage)
+        // on recupere toutes les entrées de movies avec la méthode findAll()
+        $movies=$repository->findAll();
 
-        return $this->render('front/home.html.twig');
+
+        return $this->render('front/home.html.twig',[
+            'movies'=>$movies
+        ]);
 
     }
 
@@ -34,7 +41,7 @@ class FrontController extends AbstractController
         $movie = new Movies();
         // ici on instancie un nouvel objet vide de la classe Movies
 
-        $form = $this->createForm(MoviesType::class, $movie);
+        $form = $this->createForm(MoviesType::class, $movie, ['add'=>true]);
         // ici on instancie un objet de la classe Form qui attend en argument sur quel formulaire il doit se baser et le liens avec l'entité avec l'entité en second argument affin qu'il puisse effectuer les controles
 
         $form->handleRequest($request);
@@ -53,12 +60,29 @@ class FrontController extends AbstractController
             $manager->flush();
 
 
+            $this->addFlash('success', 'Ajout effectué avec succès');
+            return $this->redirectToRoute('home');
 
 
         endif;
 
         return $this->render('front/addMovies.html.twig', [
             'form' => $form->createView()
+
+        ]);
+    }
+
+    /**
+     * @Route("/editMovies/{id}", name="editMovies")
+     */
+    public function editMovies(Movies $movie, Request $request, EntityManagerInterface $manager)
+    {
+
+        $form=$this->createForm(MoviesType::class,$movie, ['update'=>true]);
+
+        return $this->render('front/editMovies.html.twig', [
+            'form'=>$form->createView(),
+            'movie'=>$movie
 
         ]);
     }

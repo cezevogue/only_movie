@@ -17,6 +17,8 @@ class MoviesType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        if ($options['add']== true):
+
         $builder
             ->add('title',TextType::class, [
                 "required"=>false,
@@ -61,12 +63,66 @@ class MoviesType extends AbstractType
             ])
             ->add('Valider', SubmitType::class)
         ;
+
+        else:
+
+            $builder
+                ->add('title',TextType::class, [
+                    "required"=>false,
+                    "label"=>false,
+                    "attr"=>[
+                        "placeholder"=>"Saisir le titre du film"
+                    ]
+
+                ])
+                ->add('director',TextType::class, [
+                    "required"=>false,
+                    "label"=>false,
+                    "attr"=>[
+                        "placeholder"=>"Saisir le réalisateur"
+                    ]
+
+                ])
+                ->add('resume', TextareaType::class,[
+                    "required"=>false,
+                    "label"=>false,
+                ])
+                ->add('coverUpdate', FileType::class,[
+                    "required"=>false,
+                    "label"=>false,
+                    "constraints"=>[
+                        new File([
+                            'mimeTypes'=>[
+                                'image/jpg',
+                                'image/jpeg',
+                                'image/png'
+                            ],
+                            'mimeTypesMessage'=>'Extensions autorisées : jpg, jpeg, png'
+                        ])
+                    ]
+                ])
+                ->add('release_date', DateType::class, [
+                    "required"=>false,
+                    "label"=>false,
+                    'widget' => 'single_text',
+
+
+                ])
+                ->add('Valider', SubmitType::class)
+            ;
+
+
+
+        endif;
+
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Movies::class,
+            'add'=>false,
+            'update'=>false
         ]);
     }
 }

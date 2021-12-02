@@ -22,6 +22,9 @@ class Movies
      */
     private $title;
 
+
+    public $coverUpdate;
+
     /**
      * @ORM\Column(type="string", length=255)
      */
