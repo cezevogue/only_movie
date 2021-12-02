@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Categories;
 use App\Entity\Movies;
+use App\Form\CategoriesType;
 use App\Form\MoviesType;
 use App\Repository\MoviesRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,11 +24,11 @@ class FrontController extends AbstractController
 
         //ici on appelle le repository de Movies afin d'effectuer une requete de SELECT (affichage)
         // on recupere toutes les entrées de movies avec la méthode findAll()
-        $movies=$repository->findAll();
+        $movies = $repository->findAll();
 
 
-        return $this->render('front/home.html.twig',[
-            'movies'=>$movies
+        return $this->render('front/home.html.twig', [
+            'movies' => $movies
         ]);
 
     }
@@ -41,7 +43,7 @@ class FrontController extends AbstractController
         $movie = new Movies();
         // ici on instancie un nouvel objet vide de la classe Movies
 
-        $form = $this->createForm(MoviesType::class, $movie, ['add'=>true]);
+        $form = $this->createForm(MoviesType::class, $movie, ['add' => true]);
         // ici on instancie un objet de la classe Form qui attend en argument sur quel formulaire il doit se baser et le liens avec l'entité avec l'entité en second argument affin qu'il puisse effectuer les controles
 
         $form->handleRequest($request);
@@ -51,7 +53,7 @@ class FrontController extends AbstractController
 
             $coverFile = $form->get('cover')->getData();
             //dd($coverFile);
-            $coverName=date('YmdHis').uniqid().$coverFile->getClientOriginalName();
+            $coverName = date('YmdHis') . uniqid() . $coverFile->getClientOriginalName();
             $coverFile->move($this->getParameter('cover_directory'),
                 $coverName);
             //dd($movie);
@@ -78,13 +80,66 @@ class FrontController extends AbstractController
     public function editMovies(Movies $movie, Request $request, EntityManagerInterface $manager)
     {
 
-        $form=$this->createForm(MoviesType::class,$movie, ['update'=>true]);
+        $form = $this->createForm(MoviesType::class, $movie, ['update' => true]);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()):
+            $coverFile = $form->get('coverUpdate')->getData();
+            // si on a une photo en modification
+            if ($coverFile):
+                //alors on renomme le fichier
+                $coverName = date('dmYHis') . uniqid() . $coverFile->getClientOriginalName();
+                // puis on l'upload dans notre dossier 'uploads'
+                $coverFile->move($this->getParameter('cover_directory'), $coverName);
+                // on supprime l'ancienne photo présente dans le dossier d'uploads
+                unlink($this->getParameter('cover_directory') . '/' . $movie->getCover());
+                // on affecte le nouveau nom de fichier à notre objet
+                $movie->setCover($coverName);
+
+            endif;
+            // on prépare la requête et la gardons en mémoire
+            $manager->persist($movie);
+            // on execute la ou les requetes
+            $manager->flush();
+            $this->addFlash('success', 'Modification effectuée avec succès');
+            return $this->redirectToRoute('home');
+        endif;
+
 
         return $this->render('front/editMovies.html.twig', [
-            'form'=>$form->createView(),
-            'movie'=>$movie
+            'form' => $form->createView(),
+            'movie' => $movie
 
         ]);
+    }
+
+    /**
+     * @Route("/addCategories", name="addCategories")
+     * @Route("/editCategories/{id}", name="editCategories")
+     */
+    public function addCategories(Request $request, EntityManagerInterface $manager,Categories $categories=null)
+    {
+        if (!$categories):
+            $categories = new Categories();
+        endif;
+        $form = $this->createForm(CategoriesType::class, $categories);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()):
+        $manager->persist($categories);
+        $manager->flush();
+
+        $this->addFlash('success', 'Catégorie ajoutée avec succès' );
+        return $this->redirectToRoute('home');
+        endif;
+
+        return $this->render('front/addCategories.html.twig', [
+           'form'=>$form->createView()
+        ]);
+
+
     }
 
 
