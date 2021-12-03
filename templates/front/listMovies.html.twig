@@ -5,6 +5,16 @@
 
 
 {% block body %}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
 
     <table class="table table-dark">
         <thead>
@@ -33,7 +43,7 @@
             <td>@mdo</td>
             <td>
                 <a href="{{ path('editMovies', {id: movie.id}) }}" class="btn btn-success">Modifier</a>
-                <a href="" class="btn btn-danger">Supprimer</a>
+                <a href="{{ path('deleteMovies', { id: movie.id }) }}" onclick="return confirm('Etes vous sûr de vouloir supprimer ce film ?')" class="btn btn-danger">Supprimer</a>
             </td>
             {% endfor %}
         </tr>

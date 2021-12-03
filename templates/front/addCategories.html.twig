@@ -1,6 +1,16 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
 
     {{ form(form) }}
 
@@ -20,7 +30,7 @@
             <td>{{ categorie.name }}</td>
             <td>
                 <a href="{{ path('editCategories', {id: categorie.id}) }}" class="btn btn-success">Modifier</a>
-                <a href="" class="btn btn-danger">Supprimer</a>
+                <a href="{{ path('deleteCategories', {id: categorie.id}) }}"  onclick="return confirm('Etes-vous sûr de vouloir supprimer cette catégorie ')" class="btn btn-danger">Supprimer</a>
             </td>
             {% endfor %}
         </tr>
@@ -29,12 +39,25 @@
     </table>
 {% endblock %}
 
+
+
+
 {% block title %}
+    {% if ajout==true  %}
     {{ parent() }}ajout de catégorie
+    {% else %}
+        {{ parent() }}Modification de catégorie
+    {% endif %}
 {% endblock %}
 
 {% block h1 %}
+    {% if ajout==true  %}
     Ajout de catégorie
+    {% else %}
+    Modification de catégorie
+    {% endif %}
 {% endblock %}
+
+
 
 

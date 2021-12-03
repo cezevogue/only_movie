@@ -64,7 +64,7 @@ class FrontController extends AbstractController
 
 
             $this->addFlash('success', 'Ajout effectué avec succès');
-            return $this->redirectToRoute('home');
+            return $this->redirectToRoute('listMovies');
 
 
         endif;
@@ -104,7 +104,7 @@ class FrontController extends AbstractController
             // on execute la ou les requetes
             $manager->flush();
             $this->addFlash('success', 'Modification effectuée avec succès');
-            return $this->redirectToRoute('home');
+            return $this->redirectToRoute('listMovies');
         endif;
 
 
@@ -119,15 +119,17 @@ class FrontController extends AbstractController
      * @Route("/addCategories", name="addCategories")
      * @Route("/editCategories/{id}", name="editCategories")
      */
-    public function addCategories(Request $request, EntityManagerInterface $manager,CategoriesRepository $repository, $id=null)
+    public function addCategories(Request $request, EntityManagerInterface $manager, CategoriesRepository $repository, $id = null)
     {
+        $ajout=false;
 
-        $categories=$repository->findAll();
+        $categories = $repository->findAll();
 
         if (!$id):
             $categorie = new Categories();
+            $ajout=true;
         else:
-            $categorie=$repository->find($id);
+            $categorie = $repository->find($id);
         endif;
 
 
@@ -136,16 +138,22 @@ class FrontController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()):
-        $manager->persist($categorie);
-        $manager->flush();
+            $manager->persist($categorie);
+            $manager->flush();
 
-        $this->addFlash('success', 'Catégorie ajoutée avec succès' );
-        return $this->redirectToRoute('home');
+            if (!$id):
+                $this->addFlash('success', 'Catégorie ajoutée avec succès');
+            else:
+                $this->addFlash('success', 'Catégorie modifiée avec succès');
+            endif;
+
+            return $this->redirectToRoute('addCategories');
         endif;
 
         return $this->render('front/addCategories.html.twig', [
-           'form'=>$form->createView(),
-            'categories'=>$categories
+            'form' => $form->createView(),
+            'categories' => $categories,
+            'ajout'=>$ajout
         ]);
 
 
@@ -157,11 +165,35 @@ class FrontController extends AbstractController
      */
     public function listMovies(MoviesRepository $repository)
     {
-       $movies=$repository->findAll();
+        $movies = $repository->findAll();
 
         return $this->render("front/listMovies.html.twig", [
-            'movies'=>$movies
+            'movies' => $movies
         ]);
+    }
+
+    /**
+     * @Route("/deleteMovies/{id}", name="deleteMovies")
+     */
+    public function deleteMovies(Movies $movies, EntityManagerInterface $manager)
+    {
+        $this->addFlash('success', $movies->getTitle().' supprimé avec succès');
+        $manager->remove($movies);
+        $manager->flush();
+        return$this->redirectToRoute('listMovies');
+
+    }
+
+    /**
+     * @Route("/deleteCategories/{id}", name="deleteCategories")
+     */
+    public function deleteCategories(Categories $categories, EntityManagerInterface $manager)
+    {
+        $this->addFlash('success', 'Catégorie supprimé avec succès');
+        $manager->remove($categories);
+        $manager->flush();
+        return$this->redirectToRoute('addCategories');
+
     }
 
 

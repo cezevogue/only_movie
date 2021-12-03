@@ -11,6 +11,16 @@
 
 
 {% block body %}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
 
     {{ form_start(form) }}
 
@@ -25,6 +35,9 @@
 
     <label for="">Date de sortie</label>
     {{ form_row(form.release_date) }}
+
+    <label for="">Catégorie</label>
+    {{ form_row(form.categories) }}
 
     <label for="">Affiche</label>
     {{ form_row(form.cover, {'attr':{ 'onChange': 'loadFile(event)'}     }) }}

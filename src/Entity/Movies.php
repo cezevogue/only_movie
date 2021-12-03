@@ -116,12 +116,12 @@ class Movies
         return $this;
     }
 
-    public function getCategories(): Categories
+    public function getCategories(): ?Categories
     {
         return $this->categories;
     }
 
-    public function setCategories(Categories $categories): self
+    public function setCategories(?Categories $categories): self
     {
         $this->categories = $categories;
 

@@ -26,6 +26,9 @@
     <label for="">Date de sortie</label>
     {{ form_row(form.release_date) }}
 
+    <label for="">Catégorie</label>
+    {{ form_row(form.categories) }}
+
     <label for="">Affiche</label>
     {{ form_row(form.coverUpdate, {'attr':{ 'onChange': 'loadFile(event)'}     }) }}
     <div class="row justify-content-around">

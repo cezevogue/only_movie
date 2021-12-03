@@ -2,7 +2,9 @@
 
 namespace App\Form;
 
+use App\Entity\Categories;
 use App\Entity\Movies;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
@@ -20,6 +22,11 @@ class MoviesType extends AbstractType
         if ($options['add']== true):
 
         $builder
+            ->add('categories', EntityType::class,[
+                "label"=>false,
+                "class"=>Categories::class,
+                'choice_label'=>'name'
+            ])
             ->add('title',TextType::class, [
                 "required"=>false,
                 "label"=>false,
@@ -59,7 +66,6 @@ class MoviesType extends AbstractType
                 "label"=>false,
                 'widget' => 'single_text',
 
-
             ])
             ->add('Valider', SubmitType::class)
         ;
@@ -67,6 +73,11 @@ class MoviesType extends AbstractType
         else:
 
             $builder
+                ->add('categories', EntityType::class,[
+                    "label"=>false,
+                    "class"=>Categories::class,
+                    'choice_label'=>'name'
+                ])
                 ->add('title',TextType::class, [
                     "required"=>false,
                     "label"=>false,
