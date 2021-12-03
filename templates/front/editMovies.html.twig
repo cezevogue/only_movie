@@ -11,7 +11,17 @@
 
 
 {% block body %}
-
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
+    <link rel="stylesheet" href="{{ asset('css/select2.css') }}">
     {{ form_start(form) }}
 
     <label for="">Titre</label>
@@ -28,6 +38,9 @@
 
     <label for="">Catégorie</label>
     {{ form_row(form.categories) }}
+
+    <label for="">Acteurs</label>
+    {{ form_row(form.actors) }}
 
     <label for="">Affiche</label>
     {{ form_row(form.coverUpdate, {'attr':{ 'onChange': 'loadFile(event)'}     }) }}
@@ -60,6 +73,15 @@
 
         };
 
+    </script>
+
+    <script src="{{ asset('js/jquery.min.js') }}"></script>
+    <script src="{{ asset('js/select2.js') }}"></script>
+
+    <script>
+        $(function(){
+            $('.select2').select2()
+        });
     </script>
 
 {% endblock %}

@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Entity\Actors;
 use App\Entity\Categories;
 use App\Entity\Movies;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -22,6 +23,18 @@ class MoviesType extends AbstractType
         if ($options['add']== true):
 
         $builder
+            ->add('actors', EntityType::class, [
+                "label"=>false,
+                "class"=>Actors::class,
+                "choice_label"=> function(Actors $actors){
+                    return $actors->getFirstname().' '.$actors->getLastname();
+                },
+                "multiple"=>true,
+                "attr"=>[
+                    'class'=>'select2',
+                    'data-placeholder'=>"Sélectionnez un ou des acteurs de ce film"
+                ]
+            ])
             ->add('categories', EntityType::class,[
                 "label"=>false,
                 "class"=>Categories::class,
@@ -73,6 +86,18 @@ class MoviesType extends AbstractType
         else:
 
             $builder
+                ->add('actors', EntityType::class, [
+                    "label"=>false,
+                    "class"=>Actors::class,
+                    "choice_label"=> function(Actors $actors){
+                    return $actors->getFirstname().' '.$actors->getLastname();
+                    },
+                    "multiple"=>true,
+                    "attr"=>[
+                        'class'=>'select2',
+                        'data-placeholder'=>"Sélectionnez un ou des acteurs de ce film"
+                    ]
+                ])
                 ->add('categories', EntityType::class,[
                     "label"=>false,
                     "class"=>Categories::class,

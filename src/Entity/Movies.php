@@ -54,7 +54,7 @@ class Movies
     private $categories;
 
     /**
-     * @ORM\ManyToMany(targetEntity=Actors::class, mappedBy="movies")
+     * @ORM\ManyToMany(targetEntity=Actors::class, inversedBy="movies")
      */
     private $actors;
 
