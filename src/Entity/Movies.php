@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\MoviesRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -50,6 +52,16 @@ class Movies
      * @ORM\JoinColumn(nullable=true)
      */
     private $categories;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=Actors::class, mappedBy="movies")
+     */
+    private $actors;
+
+    public function __construct()
+    {
+        $this->actors = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -124,6 +136,33 @@ class Movies
     public function setCategories(?Categories $categories): self
     {
         $this->categories = $categories;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Actors[]
+     */
+    public function getActors(): Collection
+    {
+        return $this->actors;
+    }
+
+    public function addActor(Actors $actor): self
+    {
+        if (!$this->actors->contains($actor)) {
+            $this->actors[] = $actor;
+            $actor->addMovie($this);
+        }
+
+        return $this;
+    }
+
+    public function removeActor(Actors $actor): self
+    {
+        if ($this->actors->removeElement($actor)) {
+            $actor->removeMovie($this);
+        }
 
         return $this;
     }
