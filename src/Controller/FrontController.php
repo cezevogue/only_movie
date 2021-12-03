@@ -2,10 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\Actors;
 use App\Entity\Categories;
 use App\Entity\Movies;
+use App\Form\ActorsType;
 use App\Form\CategoriesType;
 use App\Form\MoviesType;
+use App\Repository\ActorsRepository;
 use App\Repository\CategoriesRepository;
 use App\Repository\MoviesRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -196,5 +199,62 @@ class FrontController extends AbstractController
 
     }
 
+    /**
+     * @Route("/actors", name="actors")
+     * @Route("/editActors/{id}", name="editActors")
+     */
+    public function Actors(ActorsRepository $repository, EntityManagerInterface $manager, Request $request, $id=null)
+    {
+        $ajout=false;
+
+        $actors = $repository->findAll();
+
+        if (!$id):
+            $actor = new actors();
+            $ajout=true;
+        else:
+            $actor = $repository->find($id);
+        endif;
+
+
+        $form = $this->createForm(ActorsType::class, $actor);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()):
+            $manager->persist($actor);
+            $manager->flush();
+
+            if (!$id):
+                $this->addFlash('success', 'Acteur ajouté avec succès');
+            else:
+                $this->addFlash('success', 'Acteur modifié avec succès');
+            endif;
+
+            return $this->redirectToRoute('actors');
+        endif;
+
+
+
+
+        return $this->render('front/actors.html.twig',[
+            'form'=>$form->createView(),
+            'ajout'=>$ajout,
+            'actors'=>$actors
+        ]);
+    }
+
+
+    /**
+     * @Route("/deleteActors/{id}", name="deleteActors")
+     */
+    public function deleteActors(Actors $actors, EntityManagerInterface $manager)
+    {
+        $this->addFlash('success', 'Acteur supprimé avec succès');
+        $manager->remove($actors);
+        $manager->flush();
+        return$this->redirectToRoute('actors');
+
+    }
 
 }
