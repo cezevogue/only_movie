@@ -6,6 +6,7 @@ use App\Entity\Categories;
 use App\Entity\Movies;
 use App\Form\CategoriesType;
 use App\Form\MoviesType;
+use App\Repository\CategoriesRepository;
 use App\Repository\MoviesRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -118,17 +119,24 @@ class FrontController extends AbstractController
      * @Route("/addCategories", name="addCategories")
      * @Route("/editCategories/{id}", name="editCategories")
      */
-    public function addCategories(Request $request, EntityManagerInterface $manager,Categories $categories=null)
+    public function addCategories(Request $request, EntityManagerInterface $manager,CategoriesRepository $repository, $id=null)
     {
-        if (!$categories):
-            $categories = new Categories();
+
+        $categories=$repository->findAll();
+
+        if (!$id):
+            $categorie = new Categories();
+        else:
+            $categorie=$repository->find($id);
         endif;
-        $form = $this->createForm(CategoriesType::class, $categories);
+
+
+        $form = $this->createForm(CategoriesType::class, $categorie);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()):
-        $manager->persist($categories);
+        $manager->persist($categorie);
         $manager->flush();
 
         $this->addFlash('success', 'Catégorie ajoutée avec succès' );
@@ -136,10 +144,24 @@ class FrontController extends AbstractController
         endif;
 
         return $this->render('front/addCategories.html.twig', [
-           'form'=>$form->createView()
+           'form'=>$form->createView(),
+            'categories'=>$categories
         ]);
 
 
+    }
+
+
+    /**
+     * @Route("/listMovies", name="listMovies")
+     */
+    public function listMovies(MoviesRepository $repository)
+    {
+       $movies=$repository->findAll();
+
+        return $this->render("front/listMovies.html.twig", [
+            'movies'=>$movies
+        ]);
     }
 
 
