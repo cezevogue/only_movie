@@ -124,13 +124,13 @@ class FrontController extends AbstractController
      */
     public function addCategories(Request $request, EntityManagerInterface $manager, CategoriesRepository $repository, $id = null)
     {
-        $ajout=false;
+        $ajout = false;
 
         $categories = $repository->findAll();
 
         if (!$id):
             $categorie = new Categories();
-            $ajout=true;
+            $ajout = true;
         else:
             $categorie = $repository->find($id);
         endif;
@@ -156,7 +156,7 @@ class FrontController extends AbstractController
         return $this->render('front/addCategories.html.twig', [
             'form' => $form->createView(),
             'categories' => $categories,
-            'ajout'=>$ajout
+            'ajout' => $ajout
         ]);
 
 
@@ -180,10 +180,10 @@ class FrontController extends AbstractController
      */
     public function deleteMovies(Movies $movies, EntityManagerInterface $manager)
     {
-        $this->addFlash('success', $movies->getTitle().' supprimé avec succès');
+        $this->addFlash('success', $movies->getTitle() . ' supprimé avec succès');
         $manager->remove($movies);
         $manager->flush();
-        return$this->redirectToRoute('listMovies');
+        return $this->redirectToRoute('listMovies');
 
     }
 
@@ -195,7 +195,7 @@ class FrontController extends AbstractController
         $this->addFlash('success', 'Catégorie supprimé avec succès');
         $manager->remove($categories);
         $manager->flush();
-        return$this->redirectToRoute('addCategories');
+        return $this->redirectToRoute('addCategories');
 
     }
 
@@ -203,15 +203,15 @@ class FrontController extends AbstractController
      * @Route("/actors", name="actors")
      * @Route("/editActors/{id}", name="editActors")
      */
-    public function Actors(ActorsRepository $repository, EntityManagerInterface $manager, Request $request, $id=null)
+    public function Actors(ActorsRepository $repository, EntityManagerInterface $manager, Request $request, $id = null)
     {
-        $ajout=false;
+        $ajout = false;
 
         $actors = $repository->findAll();
 
         if (!$id):
             $actor = new actors();
-            $ajout=true;
+            $ajout = true;
         else:
             $actor = $repository->find($id);
         endif;
@@ -235,12 +235,10 @@ class FrontController extends AbstractController
         endif;
 
 
-
-
-        return $this->render('front/actors.html.twig',[
-            'form'=>$form->createView(),
-            'ajout'=>$ajout,
-            'actors'=>$actors
+        return $this->render('front/actors.html.twig', [
+            'form' => $form->createView(),
+            'ajout' => $ajout,
+            'actors' => $actors
         ]);
     }
 
@@ -253,7 +251,68 @@ class FrontController extends AbstractController
         $this->addFlash('success', 'Acteur supprimé avec succès');
         $manager->remove($actors);
         $manager->flush();
-        return$this->redirectToRoute('actors');
+        return $this->redirectToRoute('actors');
+
+    }
+
+
+    /**
+     * @param Request $request
+     * @param EntityManagerInterface $manager
+     * @Route("/usersMovies", name="usersMovies")
+     * @Route("/addActor/{param}", name="addActor")
+     */
+    public function usersMovies(Request $request, EntityManagerInterface $manager, $param=null)
+    {
+        $affich=false;
+        if ($param):
+           // dd('coucou');
+         $affich=true;
+            endif;
+
+
+        $movie = new Movies();
+        $form = $this->createForm(MoviesType::class, $movie, ['add' => true]);
+        $form->handleRequest($request);
+        $actor = new Actors();
+        $formActor = $this->createForm(ActorsType::class, $actor);
+        $formActor->handleRequest($request);
+        if ($formActor->isSubmitted() && $formActor->isValid()):
+            $manager->persist($actor);
+            $manager->flush();
+                $affich=false;
+            return $this->redirectToRoute('usersMovies',['affich'=>$affich]);
+        endif;
+
+        if ($form->isSubmitted() && $form->isValid()):
+            $coverFile = $form->get('cover')->getData();
+            //dd($coverFile);
+            $coverName = date('YmdHis') . uniqid() . $coverFile->getClientOriginalName();
+            $coverFile->move($this->getParameter('cover_directory'),
+                $coverName);
+            //dd($movie);
+            $movie->setCover($coverName);
+            $manager->persist($movie);
+            $manager->flush();
+
+            return $this->redirectToRoute('listUsersMovies');
+        endif;
+
+
+        return $this->render('front/usersMovies.html.twig',[
+            'form'=>$form->createView(),
+            'formActor'=>$formActor->createView(),
+            'affich'=>$affich
+        ]);
+
+    }
+
+
+    /**
+     * @Route("/listUsersMovies", name="listUsersMovies")
+     */
+    public function listUsersMovies()
+    {
 
     }
 

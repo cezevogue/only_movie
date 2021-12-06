@@ -5,7 +5,7 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>{% block title %}NuxBackoffice | {% endblock %}</title>
+    <title>{% block title %}OnlyMoviesBackoffice | {% endblock %}</title>
     {% block stylesheets %}
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.0.1/lux/bootstrap.min.css" integrity="sha512-EJJuqC8nbI+dUjDM89eZ8dVmckG/vAfKIhmW4pi3Y/S1gE8uvIHuPqpbZ3/DliUQOZbS0Wp7317zoPRRoX+E+A==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
@@ -38,8 +38,8 @@
                     <div class="btn-group" role="group">
                         <button id="btnGroupDrop1" type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
                         <div class="dropdown-menu" aria-labelledby="btnGroupDrop1" style="">
-                            <a class="dropdown-item" href="">Liste des articles</a>
-                            <a class="dropdown-item" href="">Ajout article</a>
+                            <a class="dropdown-item" href="{{ path('listMovies') }}">Liste des articles</a>
+                            <a class="dropdown-item" href="{{ path('addMovies') }}">Ajout article</a>
                         </div>
                     </div>
                 </div>
@@ -50,20 +50,19 @@
                     <div class="btn-group" role="group">
                         <button id="btnGroupDrop1" type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
                         <div class="dropdown-menu" aria-labelledby="btnGroupDrop1" style="">
-                            <a class="dropdown-item" href="">Liste catégories</a>
-                            <a class="dropdown-item" href="">Ajout catégorie</a>
+                            <a class="dropdown-item" href="{{ path('addCategories') }}">Liste catégories</a>
                         </div>
                     </div>
                 </div>
             </li>
             <li class="nav-item ms-2 mt-3">
                 <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
-                    <a href="" class="btn btn-primary nav-link active">Gestion des commandes</a>
+                    <a href="" class="btn btn-primary nav-link active">Gestion des acteurs</a>
                     <div class="btn-group" role="group">
                         <button id="btnGroupDrop1" type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
                         <div class="dropdown-menu" aria-labelledby="btnGroupDrop1" style="">
-                            <a class="dropdown-item" href="">Commandes en cours</a>
-                            <a class="dropdown-item" href="#">Historique des commandes</a>
+                            <a class="dropdown-item" href="{{ path('actors') }}">Liste des acteurs</a>
+
                         </div>
                     </div>
                 </div>
