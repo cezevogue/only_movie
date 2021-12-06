@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UsersRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -76,6 +78,16 @@ class Users implements UserInterface,PasswordAuthenticatedUserInterface
      * @ORM\Column(type="json")
      */
     private $roles = ["ROLE_USER"];
+
+    /**
+     * @ORM\OneToMany(targetEntity=Movies::class, mappedBy="CreatedBy")
+     */
+    private $createdMovies;
+
+    public function __construct()
+    {
+        $this->createdMovies = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -167,5 +179,35 @@ class Users implements UserInterface,PasswordAuthenticatedUserInterface
     public function __call($name, $arguments)
     {
         // TODO: Implement @method string getUserIdentifier()
+    }
+
+    /**
+     * @return Collection|Movies[]
+     */
+    public function getCreatedMovies(): Collection
+    {
+        return $this->createdMovies;
+    }
+
+    public function addCreatedMovie(Movies $createdMovie): self
+    {
+        if (!$this->createdMovies->contains($createdMovie)) {
+            $this->createdMovies[] = $createdMovie;
+            $createdMovie->setCreatedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCreatedMovie(Movies $createdMovie): self
+    {
+        if ($this->createdMovies->removeElement($createdMovie)) {
+            // set the owning side to null (unless already changed)
+            if ($createdMovie->getCreatedBy() === $this) {
+                $createdMovie->setCreatedBy(null);
+            }
+        }
+
+        return $this;
     }
 }

@@ -277,11 +277,13 @@ class FrontController extends AbstractController
         $actor = new Actors();
         $formActor = $this->createForm(ActorsType::class, $actor);
         $formActor->handleRequest($request);
+
         if ($formActor->isSubmitted() && $formActor->isValid()):
             $manager->persist($actor);
             $manager->flush();
                 $affich=false;
             return $this->redirectToRoute('usersMovies',['affich'=>$affich]);
+
         endif;
 
         if ($form->isSubmitted() && $form->isValid()):
@@ -292,6 +294,7 @@ class FrontController extends AbstractController
                 $coverName);
             //dd($movie);
             $movie->setCover($coverName);
+            $movie->setCreatedBy($this->getUser());
             $manager->persist($movie);
             $manager->flush();
 
@@ -311,9 +314,13 @@ class FrontController extends AbstractController
     /**
      * @Route("/listUsersMovies", name="listUsersMovies")
      */
-    public function listUsersMovies()
+    public function listUsersMovies(MoviesRepository $repository)
     {
+        $movies=$repository->findBy(['CreatedBy'=>$this->getUser()]);
 
+        return $this->render('front/listUsersMovies.html.twig',[
+            'movies'=>$movies
+        ]);
     }
 
 }

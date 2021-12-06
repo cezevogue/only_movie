@@ -58,6 +58,11 @@ class Movies
      */
     private $actors;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Users::class, inversedBy="createdMovies")
+     */
+    private $CreatedBy;
+
     public function __construct()
     {
         $this->actors = new ArrayCollection();
@@ -163,6 +168,18 @@ class Movies
         if ($this->actors->removeElement($actor)) {
             $actor->removeMovie($this);
         }
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?Users
+    {
+        return $this->CreatedBy;
+    }
+
+    public function setCreatedBy(?Users $CreatedBy): self
+    {
+        $this->CreatedBy = $CreatedBy;
 
         return $this;
     }
