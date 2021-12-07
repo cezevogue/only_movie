@@ -262,13 +262,13 @@ class FrontController extends AbstractController
      * @Route("/usersMovies", name="usersMovies")
      * @Route("/addActor/{param}", name="addActor")
      */
-    public function usersMovies(Request $request, EntityManagerInterface $manager, $param=null)
+    public function usersMovies(Request $request, EntityManagerInterface $manager, $param = null)
     {
-        $affich=false;
+        $affich = false;
         if ($param):
-           // dd('coucou');
-         $affich=true;
-            endif;
+            // dd('coucou');
+            $affich = true;
+        endif;
 
 
         $movie = new Movies();
@@ -281,8 +281,8 @@ class FrontController extends AbstractController
         if ($formActor->isSubmitted() && $formActor->isValid()):
             $manager->persist($actor);
             $manager->flush();
-                $affich=false;
-            return $this->redirectToRoute('usersMovies',['affich'=>$affich]);
+            $affich = false;
+            return $this->redirectToRoute('usersMovies', ['affich' => $affich]);
 
         endif;
 
@@ -302,10 +302,10 @@ class FrontController extends AbstractController
         endif;
 
 
-        return $this->render('front/usersMovies.html.twig',[
-            'form'=>$form->createView(),
-            'formActor'=>$formActor->createView(),
-            'affich'=>$affich
+        return $this->render('front/usersMovies.html.twig', [
+            'form' => $form->createView(),
+            'formActor' => $formActor->createView(),
+            'affich' => $affich
         ]);
 
     }
@@ -316,11 +316,43 @@ class FrontController extends AbstractController
      */
     public function listUsersMovies(MoviesRepository $repository)
     {
-        $movies=$repository->findBy(['CreatedBy'=>$this->getUser()]);
+        $movies = $repository->findBy(['CreatedBy' => $this->getUser()]);
 
-        return $this->render('front/listUsersMovies.html.twig',[
-            'movies'=>$movies
+        return $this->render('front/listUsersMovies.html.twig', [
+            'movies' => $movies
         ]);
     }
+
+    /**
+     * @Route("/detailMovie/{id}", name="detailMovie")
+     * @Route("/formReview/{id}/{param}", name="formReview")
+     */
+    public function detailMovie(MoviesRepository $repository,Request $request,EntityManagerInterface $manager, $id = null, $param = null)
+    {
+        $affich = false;
+        if ($param):
+            $affich = true;
+        endif;
+        $movie = $repository->find($id);
+        if (!empty($_POST)):
+            $review=new Reviews();
+            $comment = $request->request->get('review');
+            $rating = $request->request->get('rating');
+           $user=$this->getUser();
+
+
+
+
+        endif;
+
+
+
+        return $this->render('front/detailMovie.html.twig', [
+            'movie' => $movie,
+            'affich' => $affich
+        ]);
+
+    }
+
 
 }
