@@ -5,12 +5,15 @@ namespace App\Controller;
 use App\Entity\Actors;
 use App\Entity\Categories;
 use App\Entity\Movies;
+use App\Entity\Reviews;
 use App\Form\ActorsType;
 use App\Form\CategoriesType;
 use App\Form\MoviesType;
 use App\Repository\ActorsRepository;
 use App\Repository\CategoriesRepository;
 use App\Repository\MoviesRepository;
+use App\Repository\ReviewsRepository;
+use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -327,31 +330,150 @@ class FrontController extends AbstractController
      * @Route("/detailMovie/{id}", name="detailMovie")
      * @Route("/formReview/{id}/{param}", name="formReview")
      */
-    public function detailMovie(MoviesRepository $repository,Request $request,EntityManagerInterface $manager, $id = null, $param = null)
+    public function detailMovie(MoviesRepository $repository, ReviewsRepository $reviewsRepository, Request $request, EntityManagerInterface $manager, $id = null, $param = null)
     {
         $affich = false;
         if ($param):
             $affich = true;
         endif;
+
         $movie = $repository->find($id);
+        $reviews = $reviewsRepository->findBy(['movie' => $movie], ['publish_date' => 'DESC'], 5);
+        //dd($reviews);
+        $user = $this->getUser();
+        $result = $reviewsRepository->findBy(['createdBy' => $user, 'movie' => $movie]);
+        //dd($result);
+        if (count($result)==0):
+            $review = new Reviews();
+
+        else:
+            $affich = false;
+            $this->addFlash('danger', 'Vous avez déjà votez sur ce film');
+        endif;
         if (!empty($_POST)):
-            $review=new Reviews();
+
+
             $comment = $request->request->get('review');
             $rating = $request->request->get('rating');
-           $user=$this->getUser();
 
+
+
+                $review->setCreatedBy($user)->setComment($comment)->setPublishDate(new \DateTime())->setRating($rating)->setMovie($movie);
+                $manager->persist($review);
+                $manager->flush();
+                $this->addFlash('success', 'Merci pour votre contribution');
+                return $this->redirectToRoute('detailMovie', ['id' => $id]);
 
 
 
         endif;
 
 
-
         return $this->render('front/detailMovie.html.twig', [
             'movie' => $movie,
-            'affich' => $affich
+            'affich' => $affich,
+            'reviews' => $reviews
         ]);
 
+    }
+
+    /**
+     * @Route("/reviews/{id}", name="reviews")
+     */
+    public function reviews(ReviewsRepository $reviewsRepository, MoviesRepository $repository, $id)
+    {
+        $movie = $repository->find($id);
+        $reviews = $reviewsRepository->findBy(['movie' => $movie], ['publish_date' => 'DESC']);
+
+        return $this->render('front/reviews.html.twig', [
+            'reviews' => $reviews
+        ]);
+    }
+
+
+    /**
+     * @Route("/listReviews/{id}", name="listReviews")
+     */
+    public function listReviews(MoviesRepository $moviesRepository, ReviewsRepository $repository, $id = null)
+    {
+        $movie = $moviesRepository->find($id);
+
+        $reviews = $repository->findBy([
+            'movie' => $movie
+        ]);
+
+
+        return $this->render("front/listReviews.html.twig", [
+            'reviews' => $reviews,
+            'movie' => $movie
+        ]);
+
+    }
+
+    /**
+     * @Route("/deleteReview/{id}/{movie}", name="deleteReview")
+     */
+    public function deleteReview(Reviews $reviews, EntityManagerInterface $manager, $movie)
+    {
+
+        $manager->remove($reviews);
+        $manager->flush();
+        $this->addFlash('success', 'Commentaire supprimé avec succès');
+        return $this->redirectToRoute('listReviews', ['id' => $movie]);
+
+
+    }
+
+    /**
+     * @Route("/deleteUsersMovies/{id}", name="deleteUsersMovies")
+     */
+    public function deleteUsersMovies(Movies $movies, EntityManagerInterface $manager)
+    {
+        $this->addFlash('success', $movies->getTitle() . ' supprimé avec succès');
+        $manager->remove($movies);
+        $manager->flush();
+        return $this->redirectToRoute('listUsersMovies');
+
+    }
+
+    /**
+     * @Route("/editUsersMovies/{id}", name="editUsersMovies")
+     */
+    public function editUsersMovies(Movies $movie, Request $request, EntityManagerInterface $manager)
+    {
+
+        $form = $this->createForm(MoviesType::class, $movie, ['update' => true]);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()):
+            $coverFile = $form->get('coverUpdate')->getData();
+            // si on a une photo en modification
+            if ($coverFile):
+                //alors on renomme le fichier
+                $coverName = date('dmYHis') . uniqid() . $coverFile->getClientOriginalName();
+                // puis on l'upload dans notre dossier 'uploads'
+                $coverFile->move($this->getParameter('cover_directory'), $coverName);
+                // on supprime l'ancienne photo présente dans le dossier d'uploads
+                unlink($this->getParameter('cover_directory') . '/' . $movie->getCover());
+                // on affecte le nouveau nom de fichier à notre objet
+                $movie->setCover($coverName);
+
+            endif;
+            // on prépare la requête et la gardons en mémoire
+            $manager->persist($movie);
+            // on execute la ou les requetes
+            $manager->flush();
+            $this->addFlash('success', 'Modification effectuée avec succès');
+            return $this->redirectToRoute('listUsersMovies');
+        endif;
+
+
+        return $this->render('front/editUsersMovies.html.twig', [
+            'form' => $form->createView(),
+            'movie' => $movie
+
+        ]);
     }
 
 

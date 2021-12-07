@@ -7,7 +7,6 @@
 {% endblock %}
 
 
-
 {% block body %}
     {% for message in app.flashes('success') %}
         <div class="alert alert-success text-center">
@@ -20,7 +19,19 @@
         </div>
     {% endfor %}
 
-    <a href="{{ path('addMovies') }}" class="btn btn-success">Ajouter un film</a>
+    <div >
+
+
+
+        <div class="border mb-5 pl-3 pt-2" >
+            <h3>Mes informations</h3>
+            <p><strong>Nom: </strong>  {{ app.user.lastname }}</p>
+            <p><strong>Prénom: </strong> {{ app.user.firstname }}</p>
+            <p><strong>Email: </strong> {{ app.user.email }}</p>
+            <p><strong> Pseudo:</strong> {{ app.user.username }}</p>
+        </div>
+        <div >
+
 
     <table class="table table-dark mt-5">
         <thead>
@@ -52,17 +63,17 @@
                     {{ actor.firstname }} {{ actor.lastname }}
                 {% endfor %}</td>
             <td>
-                <a href="{{ path('editMovies', {id: movie.id}) }}" class="btn btn-success">Modifier</a>
-                <a href="{{ path('deleteMovies', { id: movie.id }) }}" onclick="return confirm('Etes vous sûr de vouloir supprimer ce film ?')" class="btn btn-danger">Supprimer</a>
+                <a href="{{ path('editUsersMovies', {id: movie.id}) }}" class="btn btn-success">Modifier</a>
+                <a href="{{ path('deleteUsersMovies', { id: movie.id }) }}" onclick="return confirm('Etes vous sûr de vouloir supprimer {{ movie.title }}?');" class="btn btn-danger">Supprimer</a>
             </td>
             {% endfor %}
         </tr>
 
         </tbody>
     </table>
+    </div>
 
-
-
+    </div>
 {% endblock %}
 
 

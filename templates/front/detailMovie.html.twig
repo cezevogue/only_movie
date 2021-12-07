@@ -10,8 +10,18 @@
 
 {% block body %}
 
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
 
-    <div class="card-body row justify-content-md-around border">
+    <div class="card-body m-0 row justify-content-md-around border">
 
         <div class="col-4">
             <img src="{{ asset('uploads/') }}{{ movie.cover }}" height="500">
@@ -56,18 +66,21 @@
                 <button class="btn btn-primary" type="submit">Envoyer!</button>
                 </form>
             {% endif %}
+            <a href="{{ path('reviews',{id: movie.id}) }}" class="btn btn-primary rounded">Voir tout les commentaires</a>
 
         </div>
+    </div>
+    {% for review in reviews %}
+
+
+    <div class="card-header m-0">
+        <h4 class="card-title">{{ review.rating }} / 10   </h4>
+        <h5>Posté par : {{ review.createdBy.username }}</h5>
+        <h6 class="card-subtitle mb-2 text-muted">Le : {{ review.publishDate | date('d-m-Y H:i')}}</h6>
+        <p class="card-text">{{ review.comment }}</p>
 
     </div>
-
-    <div class="card-body">
-        <h4 class="card-title">NOTE - DATE </h4>
-        <h6 class="card-subtitle mb-2 text-muted">PSEUDO</h6>
-        <p class="card-text">COMMENTAIRE LAISSE PAR L'UTILISATEUR</p>
-
-    </div>
-
+{% endfor %}
     </div>
 
 {% endblock %}
