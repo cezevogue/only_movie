@@ -5,13 +5,16 @@ namespace App\Controller;
 use App\Entity\Actors;
 use App\Entity\Categories;
 use App\Entity\Movies;
+use App\Entity\Pricing;
 use App\Entity\Reviews;
 use App\Form\ActorsType;
 use App\Form\CategoriesType;
 use App\Form\MoviesType;
+use App\Form\PricingType;
 use App\Repository\ActorsRepository;
 use App\Repository\CategoriesRepository;
 use App\Repository\MoviesRepository;
+use App\Repository\PricingRepository;
 use App\Repository\ReviewsRepository;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -343,7 +346,7 @@ class FrontController extends AbstractController
         $user = $this->getUser();
         $result = $reviewsRepository->findBy(['createdBy' => $user, 'movie' => $movie]);
         //dd($result);
-        if (count($result)==0):
+        if (count($result) == 0):
             $review = new Reviews();
 
         else:
@@ -357,13 +360,11 @@ class FrontController extends AbstractController
             $rating = $request->request->get('rating');
 
 
-
-                $review->setCreatedBy($user)->setComment($comment)->setPublishDate(new \DateTime())->setRating($rating)->setMovie($movie);
-                $manager->persist($review);
-                $manager->flush();
-                $this->addFlash('success', 'Merci pour votre contribution');
-                return $this->redirectToRoute('detailMovie', ['id' => $id]);
-
+            $review->setCreatedBy($user)->setComment($comment)->setPublishDate(new \DateTime())->setRating($rating)->setMovie($movie);
+            $manager->persist($review);
+            $manager->flush();
+            $this->addFlash('success', 'Merci pour votre contribution');
+            return $this->redirectToRoute('detailMovie', ['id' => $id]);
 
 
         endif;
@@ -474,6 +475,57 @@ class FrontController extends AbstractController
             'movie' => $movie
 
         ]);
+    }
+
+
+    /**
+     * @Route("/listPricing", name="listPricing")
+     * @Route("/editPricing/{id}", name="editPricing")
+     */
+    public function listPricing(PricingRepository $repository, Request $request, EntityManagerInterface $manager, $id = null)
+    {
+        if ($id):
+            $pricing = $repository->find($id);
+        else:
+            $pricing = new Pricing();
+        endif;
+
+        $pricings=$repository->findAll();
+
+        $form = $this->createForm(PricingType::class, $pricing);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()):
+
+            $manager->persist($pricing);
+            $manager->flush();
+            if ($id):
+                $this->addFlash("success", "forfait modifié");
+            else:
+                $this->addFlash("success", "forfait créé");
+            endif;
+
+            return $this->redirectToRoute('listPricing');
+        endif;
+
+        return $this->render('front/listPricing.html.twig',[
+            'form'=>$form->createView(),
+            'pricings'=>$pricings
+            ]);
+
+    }
+
+    /**
+     * @Route("/deletePricing/{id}", name="deletePricing")
+     */
+    public function deletePricing(Pricing $pricing, EntityManagerInterface $manager)
+    {
+        $manager->remove($pricing);
+        $manager->flush();
+        $this->addFlash("success", "forfait supprimé");
+        return $this->redirectToRoute('listPricing');
+
+
     }
 
 
