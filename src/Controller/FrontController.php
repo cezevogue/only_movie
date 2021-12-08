@@ -17,6 +17,7 @@ use App\Repository\MoviesRepository;
 use App\Repository\PricingRepository;
 use App\Repository\ReviewsRepository;
 use App\Repository\UsersRepository;
+use App\Service\Panier\PanierService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -525,6 +526,58 @@ class FrontController extends AbstractController
         $this->addFlash("success", "forfait supprimé");
         return $this->redirectToRoute('listPricing');
 
+
+    }
+
+    /**
+     * @Route("/addCart/{id}/{route}", name="addCart")
+     */
+    public function addCart($id, PanierService $panierService, $route)
+    {
+        $panierService->add($id);
+
+        ($panierService->getFullCart());
+
+        if ($route=='home'):
+        return $this->redirectToRoute('home');
+        else:
+        return $this->redirectToRoute('fullCart');
+        endif;
+
+    }
+
+    /**
+     * @Route("/removeCart/{id}", name="removeCart")
+     */
+    public function removeCart($id, PanierService $panierService)
+    {
+        $panierService->remove($id);
+        return $this->redirectToRoute('fullCart');
+
+
+    }
+
+    /**
+     * @Route("/deleteCart/{id}", name="deleteCart")
+     */
+    public function deleteCart($id, PanierService $panierService)
+    {
+        $panierService->delete($id);
+        return $this->redirectToRoute('fullCart');
+
+
+    }
+
+    /**
+     * @Route("/fullCart", name="fullCart")
+     */
+    public function fullCart(PanierService $panierService)
+    {
+        $fullCart=$panierService->getFullCart();
+
+        return $this->render('front/fullCart.html.twig',[
+            'fullCart'=>$fullCart
+        ]);
 
     }
 
