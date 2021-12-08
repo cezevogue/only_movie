@@ -29,15 +29,17 @@ class Orders
      */
     private $user;
 
-    /**
-     * @ORM\OneToOne(targetEntity=Pricing::class, cascade={"persist", "remove"})
-     */
-    private $pricing;
+
 
     /**
      * @ORM\OneToMany(targetEntity=Cart::class, mappedBy="orders")
      */
     private $carts;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Pricing::class, inversedBy="orders")
+     */
+    private $pricing;
 
     public function __construct()
     {
@@ -73,17 +75,7 @@ class Orders
         return $this;
     }
 
-    public function getPricing(): ?Pricing
-    {
-        return $this->pricing;
-    }
 
-    public function setPricing(?Pricing $pricing): self
-    {
-        $this->pricing = $pricing;
-
-        return $this;
-    }
 
     /**
      * @return Collection|Cart[]
@@ -111,6 +103,18 @@ class Orders
                 $cart->setOrders(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getPricing(): ?Pricing
+    {
+        return $this->pricing;
+    }
+
+    public function setPricing(?Pricing $pricing): self
+    {
+        $this->pricing = $pricing;
 
         return $this;
     }
