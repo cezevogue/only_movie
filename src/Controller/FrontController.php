@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Actors;
+use App\Entity\Cart;
 use App\Entity\Categories;
 use App\Entity\Movies;
+use App\Entity\Orders;
 use App\Entity\Pricing;
 use App\Entity\Reviews;
 use App\Form\ActorsType;
@@ -596,25 +598,46 @@ class FrontController extends AbstractController
      *
      * @Route("/finalOrder/{id}", name="finalOrder")
      */
-    public function order(PricingRepository $repository, PanierService $panierService, $id=null)
+    public function order(PricingRepository $repository, PanierService $panierService, EntityManagerInterface $manager, $id = null)
     {
         if (!empty($_GET['pricing'])):
             $pricing = $repository->find($_GET['pricing']);
             $price = $pricing->getPrice();
             $panier = $panierService->getFullCart();
-            $count=0;
+            $count = 0;
             foreach ($panier as $item):
-                $count+=$item['quantity'];
+                $count += $item['quantity'];
             endforeach;
-            $total=$count*$price;
-            $affich=true;
-            return $this->render('front/fullCart.html.twig',[
-                'affich'=>$affich,
-                'total'=>$total,
-                'pricings'=>"",
-                'price'=>$_GET['pricing']
+            $total = $count * $price;
+            $affich = true;
+            return $this->render('front/fullCart.html.twig', [
+                'affich' => $affich,
+                'total' => $total,
+                'pricings' => "",
+                'price' => $_GET['pricing']
 
             ]);
+
+        endif;
+
+        if ($id):
+            $forfait = $repository->find($id);
+            $orders = new Orders();
+            $orders->setDate(new \DateTime())->setPricing($forfait)->setUser($this->getUser());
+            $panier = $panierService->getFullCart();
+
+            foreach ($panier as $item):
+
+                $cart = new Cart();
+                $cart->setOrders($orders)->setMovies($item['movie'])->setQuantity($item['quantity']);
+                $manager->persist($cart);
+                    $panierService->delete($item['movie']->getId());
+            endforeach;
+            $manager->persist($orders);
+            $manager->flush();
+            $this->addFlash('success', "Merci pour votre achat");
+            return $this->redirectToRoute('home');
+
 
         endif;
 
