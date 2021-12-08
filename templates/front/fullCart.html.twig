@@ -39,16 +39,21 @@
         <a href="{{ path('order', {param: true}) }}" class="btn btn-warning">Valider le panier</a>
     {% else %}
 
-        <form action="{{ path('finalOrder') }}">
+        <form action="{{ path('finalOrder') }}" method="get">
             <div class="form-group">
             <select name="pricing" id="" class="form-control">
                 {% for pricing in pricings %}
-                <option value="{{ pricing.price }}" >{{ pricing.public }}</option>
+                <option value="{{ pricing.id }}" >{{ pricing.public }}</option>
                 {% endfor %}
             </select>
             </div>
             <button class="btn btn-primary" type="submit">Valider</button>
         </form>
+        {% if total is defined %}
+            <h2><strong>Montant Total: </strong>{{ total }} €<br></h2>
+            <a href="{{ path('finalOrder', {'id': price }) }}" class="btn btn-success">Continuer ?</a>
+        {% endif %}
+
 
     {% endif %}
 {% endblock %}

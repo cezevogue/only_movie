@@ -572,12 +572,12 @@ class FrontController extends AbstractController
      * @Route("/fullCart", name="fullCart")
      * @Route("/order/{param}", name="order")
      */
-    public function fullCart(PanierService $panierService,PricingRepository $repository,$param = null)
+    public function fullCart(PanierService $panierService, PricingRepository $repository, $param = null)
     {
-        $pricings=$repository->findAll();
+        $pricings = $repository->findAll();
         $affich = false;
         if ($param):
-            $affich=true;
+            $affich = true;
         endif;
 
 
@@ -585,8 +585,8 @@ class FrontController extends AbstractController
 
         return $this->render('front/fullCart.html.twig', [
             'fullCart' => $fullCart,
-            'affich'=>$affich,
-            'pricings'=>$pricings
+            'affich' => $affich,
+            'pricings' => $pricings
         ]);
 
     }
@@ -594,10 +594,29 @@ class FrontController extends AbstractController
 
     /**
      *
-     * @Route("/finalOrder", name="finalOrder")
+     * @Route("/finalOrder/{id}", name="finalOrder")
      */
-    public function order()
+    public function order(PricingRepository $repository, PanierService $panierService, $id=null)
     {
+        if (!empty($_GET['pricing'])):
+            $pricing = $repository->find($_GET['pricing']);
+            $price = $pricing->getPrice();
+            $panier = $panierService->getFullCart();
+            $count=0;
+            foreach ($panier as $item):
+                $count+=$item['quantity'];
+            endforeach;
+            $total=$count*$price;
+            $affich=true;
+            return $this->render('front/fullCart.html.twig',[
+                'affich'=>$affich,
+                'total'=>$total,
+                'pricings'=>"",
+                'price'=>$_GET['pricing']
+
+            ]);
+
+        endif;
 
 
     }
