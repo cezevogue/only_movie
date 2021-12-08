@@ -491,7 +491,7 @@ class FrontController extends AbstractController
             $pricing = new Pricing();
         endif;
 
-        $pricings=$repository->findAll();
+        $pricings = $repository->findAll();
 
         $form = $this->createForm(PricingType::class, $pricing);
         $form->handleRequest($request);
@@ -509,10 +509,10 @@ class FrontController extends AbstractController
             return $this->redirectToRoute('listPricing');
         endif;
 
-        return $this->render('front/listPricing.html.twig',[
-            'form'=>$form->createView(),
-            'pricings'=>$pricings
-            ]);
+        return $this->render('front/listPricing.html.twig', [
+            'form' => $form->createView(),
+            'pricings' => $pricings
+        ]);
 
     }
 
@@ -538,10 +538,10 @@ class FrontController extends AbstractController
 
         ($panierService->getFullCart());
 
-        if ($route=='home'):
-        return $this->redirectToRoute('home');
+        if ($route == 'home'):
+            return $this->redirectToRoute('home');
         else:
-        return $this->redirectToRoute('fullCart');
+            return $this->redirectToRoute('fullCart');
         endif;
 
     }
@@ -570,14 +570,35 @@ class FrontController extends AbstractController
 
     /**
      * @Route("/fullCart", name="fullCart")
+     * @Route("/order/{param}", name="order")
      */
-    public function fullCart(PanierService $panierService)
+    public function fullCart(PanierService $panierService,PricingRepository $repository,$param = null)
     {
-        $fullCart=$panierService->getFullCart();
+        $pricings=$repository->findAll();
+        $affich = false;
+        if ($param):
+            $affich=true;
+        endif;
 
-        return $this->render('front/fullCart.html.twig',[
-            'fullCart'=>$fullCart
+
+        $fullCart = $panierService->getFullCart();
+
+        return $this->render('front/fullCart.html.twig', [
+            'fullCart' => $fullCart,
+            'affich'=>$affich,
+            'pricings'=>$pricings
         ]);
+
+    }
+
+
+    /**
+     *
+     * @Route("/finalOrder", name="finalOrder")
+     */
+    public function order()
+    {
+
 
     }
 
