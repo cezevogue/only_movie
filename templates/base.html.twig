@@ -41,6 +41,9 @@
                 {% endif %}
                 {% if not app.user %}
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ path('fullCart') }}">Mon panier</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link btn btn-success text-dark" href="{{ path('register') }}">S'inscrire</a>
                     </li>
                     <li class="nav-item">
@@ -50,9 +53,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('listUsersMovies') }}">Mes ajouts</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('fullCart') }}">Mon panier</a>
-                    </li>
+
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button"
                            aria-haspopup="true" aria-expanded="false">{{ app.user.username }}</a>

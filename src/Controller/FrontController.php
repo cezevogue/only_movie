@@ -241,7 +241,7 @@ class FrontController extends AbstractController
 
     /**
      * @Route("/addCart/{id}/{route}", name="addCart")
-     * @IsGranted("ROLE_USER")
+     *
      */
     public function addCart($id, PanierService $panierService, $route)
     {
@@ -259,7 +259,7 @@ class FrontController extends AbstractController
 
     /**
      * @Route("/removeCart/{id}", name="removeCart")
-     * @IsGranted("ROLE_USER")
+     *
      */
     public function removeCart($id, PanierService $panierService)
     {
@@ -271,7 +271,7 @@ class FrontController extends AbstractController
 
     /**
      * @Route("/deleteCart/{id}", name="deleteCart")
-     * @IsGranted("ROLE_USER")
+     *
      */
     public function deleteCart($id, PanierService $panierService)
     {
@@ -284,7 +284,7 @@ class FrontController extends AbstractController
     /**
      * @Route("/fullCart", name="fullCart")
      * @Route("/order/{param}", name="order")
-     * @IsGranted("ROLE_USER")
+     *
      */
     public function fullCart(PanierService $panierService, PricingRepository $repository, $param = null)
     {

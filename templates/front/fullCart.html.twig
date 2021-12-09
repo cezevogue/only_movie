@@ -35,8 +35,13 @@
             {% endfor %}
             </tbody>
         </table>
+        {% if app.user %}
+
 
         <a href="{{ path('order', {param: true}) }}" class="btn btn-warning">Valider le panier</a>
+            {% else %}
+                <a href="{{ path('login') }}" class="btn btn-success">Connectez-vous pour continuer</a>
+        {% endif %}
     {% else %}
 
         <form action="{{ path('finalOrder') }}" method="get">

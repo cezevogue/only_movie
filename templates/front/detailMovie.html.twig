@@ -38,8 +38,12 @@
             </p>
             <p>{{ movie.resume }}s</p>
             {% if affich==false %}
+                {% if app.user %}
                 <a href="{{ path('formReview', {id:movie.id ,param:true}) }}" class="btn btn-warning">Ajouter un
                     avis</a>
+                    {% else %}
+                        <a href="{{ path('login') }}" class="btn btn-success">Connectez-vous pour ajouter un avis</a>
+                {% endif %}
             {% else %}
 
                 <form method="post" action="{{ path('detailMovie', {'id': movie.id}) }}" >
