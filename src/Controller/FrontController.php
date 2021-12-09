@@ -34,12 +34,29 @@ class FrontController extends AbstractController
     /**
      * @Route("/", name="home")
      */
-    public function home(MoviesRepository $repository)
+    public function home(MoviesRepository $repository, Request $request, ActorsRepository $actorsRepository)
     {
 
+        if (!empty($_POST)):
+         $research=$request->request->get("research");
+        $actors=$actorsRepository->findByResearch($research);
+
+        if ($actors):
+
+           $movies=$repository->findBy(['actors'=>$actors]);
+        dd($movies);
+        else:
+        $movies=$repository->findByResearch($research);
+        endif;
+        if (!$movies):
+                $this->addFlash('danger', 'aucun résultat pour votre recherche');
+                $movies = $repository->findAll();
+        endif;
+            else:
         //ici on appelle le repository de Movies afin d'effectuer une requete de SELECT (affichage)
         // on recupere toutes les entrées de movies avec la méthode findAll()
         $movies = $repository->findAll();
+            endif;
 
 
         return $this->render('front/home.html.twig', [

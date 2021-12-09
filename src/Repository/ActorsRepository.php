@@ -19,22 +19,19 @@ class ActorsRepository extends ServiceEntityRepository
         parent::__construct($registry, Actors::class);
     }
 
-    // /**
-    //  * @return Actors[] Returns an array of Actors objects
-    //  */
-    /*
-    public function findByExampleField($value)
+
+    public function findByResearch($research)
     {
         return $this->createQueryBuilder('a')
-            ->andWhere('a.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('a.id', 'ASC')
-            ->setMaxResults(10)
+            ->andWhere('a.firstname LIKE :research')
+            ->setParameter('research', '%'.$research.'%')
+            ->orWhere('a.lastname LIKE :research')
+            ->setParameter('research', '%'.$research.'%')
             ->getQuery()
-            ->getResult()
+            ->getOneOrNullResult()
         ;
     }
-    */
+
 
     /*
     public function findOneBySomeField($value): ?Actors
