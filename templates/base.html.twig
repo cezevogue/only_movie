@@ -89,6 +89,16 @@
     <div class="text-center">
         <h1>  {% block h1 %}{% endblock %}</h1>
     </div>
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
 
     {% block body %}{% endblock %}
 </div>

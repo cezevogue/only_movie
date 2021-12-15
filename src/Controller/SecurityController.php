@@ -204,6 +204,7 @@ class SecurityController extends AbstractController
         endif;
 
 
+
     }
 
     /**
@@ -226,7 +227,9 @@ class SecurityController extends AbstractController
 
         else:
             $this->addFlash('danger', 'Les mots de passe ne correspondent pas');
-            return $this->redirectToRoute('resetForm', ['id'=>$user->getId()]);
+            return $this->render('security/resetForm.html.twig', [
+                'id' => $user->getId()
+            ]);
         endif;
 
 
