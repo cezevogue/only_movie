@@ -58,9 +58,26 @@ class Movies
      */
     private $actors;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Users::class, inversedBy="createdMovies")
+     */
+    private $CreatedBy;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Reviews::class, mappedBy="movie")
+     */
+    private $reviews;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Cart::class, mappedBy="movies")
+     */
+    private $carts;
+
     public function __construct()
     {
         $this->actors = new ArrayCollection();
+        $this->reviews = new ArrayCollection();
+        $this->carts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -162,6 +179,78 @@ class Movies
     {
         if ($this->actors->removeElement($actor)) {
             $actor->removeMovie($this);
+        }
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?Users
+    {
+        return $this->CreatedBy;
+    }
+
+    public function setCreatedBy(?Users $CreatedBy): self
+    {
+        $this->CreatedBy = $CreatedBy;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Reviews[]
+     */
+    public function getReviews(): Collection
+    {
+        return $this->reviews;
+    }
+
+    public function addReview(Reviews $review): self
+    {
+        if (!$this->reviews->contains($review)) {
+            $this->reviews[] = $review;
+            $review->setMovie($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReview(Reviews $review): self
+    {
+        if ($this->reviews->removeElement($review)) {
+            // set the owning side to null (unless already changed)
+            if ($review->getMovie() === $this) {
+                $review->setMovie(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Cart[]
+     */
+    public function getCarts(): Collection
+    {
+        return $this->carts;
+    }
+
+    public function addCart(Cart $cart): self
+    {
+        if (!$this->carts->contains($cart)) {
+            $this->carts[] = $cart;
+            $cart->setMovies($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCart(Cart $cart): self
+    {
+        if ($this->carts->removeElement($cart)) {
+            // set the owning side to null (unless already changed)
+            if ($cart->getMovies() === $this) {
+                $cart->setMovies(null);
+            }
         }
 
         return $this;

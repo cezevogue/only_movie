@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+
+    {% if affich == false %}
+
+
+        <table class="table table-hover m-4">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Titre</th>
+                <th scope="col">Retirer</th>
+                <th scope="col">Quantité</th>
+                <th scope="col">Ajouter</th>
+                <th scope="col">Supprimer</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in fullCart %}
+                <tr class="table-secondary">
+                    <th scope="row">{{ item.movie.id }}</th>
+                    <th>{{ item.movie.title }}</th>
+                    <th><a href="{{ path('removeCart',{id:item.movie.id}) }}" class="btn btn-primary">-</a></th>
+                    <th>{{ item.quantity }}</th>
+                    <td><a href="{{ path('addCart',{id:item.movie.id, route: 'fullCart'}) }}"
+                           class="btn btn-primary">+</a></td>
+                    <td>
+                        <a href="{{ path('deleteCart', {id:item.movie.id }) }}"
+                           onclick="return confirm('Etes-vous sûr de vouloir supprimer cette ligne ?')"
+                           class="btn btn-danger">Supprimer</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% if app.user %}
+
+
+        <a href="{{ path('order', {param: true}) }}" class="btn btn-warning">Valider le panier</a>
+            {% else %}
+                <a href="{{ path('login') }}" class="btn btn-success">Connectez-vous pour continuer</a>
+        {% endif %}
+    {% else %}
+
+        <form action="{{ path('finalOrder') }}" method="get">
+            <div class="form-group">
+            <select name="pricing" id="" class="form-control">
+                {% for pricing in pricings %}
+                <option value="{{ pricing.id }}" >{{ pricing.public }}</option>
+                {% endfor %}
+            </select>
+            </div>
+            <button class="btn btn-primary" type="submit">Valider</button>
+        </form>
+        {% if total is defined %}
+            <h2><strong>Montant Total: </strong>{{ total }} €<br></h2>
+            <a href="{{ path('finalOrder', {'id': price }) }}" class="btn btn-success">Continuer ?</a>
+        {% endif %}
+
+
+    {% endif %}
+{% endblock %}
+
+{% block title %}
+
+{% endblock %}
+

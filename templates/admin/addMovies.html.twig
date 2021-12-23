@@ -1,0 +1,79 @@
+{% extends 'backoffice.html.twig' %}
+
+{% block title %}
+{{ parent() }}Ajout film
+{% endblock %}
+
+{% block titre %}
+    Ajout film
+{% endblock %}
+
+
+
+{% block body %}
+    <link rel="stylesheet" href="{{ asset('css/select2.css') }}">
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {{ form_start(form) }}
+
+    <label for="">Titre</label>
+    {{ form_row(form.title) }}
+
+    <label for="">Réalisateur</label>
+    {{ form_row(form.director) }}
+
+    <label for="">Synopsis</label>
+    {{ form_row(form.resume) }}
+
+    <label for="">Date de sortie</label>
+    {{ form_row(form.release_date) }}
+
+    <label for="">Catégorie</label>
+    {{ form_row(form.categories) }}
+
+    <label for="">Acteurs</label>
+    {{ form_row(form.actors) }}
+
+    <label for="">Affiche</label>
+    {{ form_row(form.cover, {'attr':{ 'onChange': 'loadFile(event)'}     }) }}
+    <div class="text-center">
+        <img id="image" style="width: 300px">
+    </div>
+
+    {{ form_row(form.Valider) }}
+
+    {{ form_end(form) }}
+
+
+    <script>
+        var loadFile= function (event) {
+
+            var image= document.getElementById('image');
+
+            image.src= URL.createObjectURL(event.target.files[0]);
+
+        };
+
+    </script>
+
+    <script src="{{ asset('js/jquery.min.js') }}"></script>
+    <script src="{{ asset('js/select2.js') }}"></script>
+
+    <script>
+    $(function(){
+    $('.select2').select2()
+    });
+    </script>
+{% endblock %}
+
+
+

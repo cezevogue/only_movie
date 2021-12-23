@@ -3,19 +3,30 @@
 namespace App\Controller;
 
 use App\Entity\Actors;
+use App\Entity\Cart;
 use App\Entity\Categories;
 use App\Entity\Movies;
+use App\Entity\Orders;
+use App\Entity\Pricing;
+use App\Entity\Reviews;
 use App\Form\ActorsType;
 use App\Form\CategoriesType;
 use App\Form\MoviesType;
+use App\Form\PricingType;
 use App\Repository\ActorsRepository;
 use App\Repository\CategoriesRepository;
 use App\Repository\MoviesRepository;
+use App\Repository\PricingRepository;
+use App\Repository\ReviewsRepository;
+use App\Repository\UsersRepository;
+use App\Service\Panier\PanierService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 class FrontController extends AbstractController
 {
@@ -23,12 +34,29 @@ class FrontController extends AbstractController
     /**
      * @Route("/", name="home")
      */
-    public function home(MoviesRepository $repository)
+    public function home(MoviesRepository $repository, Request $request, ActorsRepository $actorsRepository)
     {
 
+        if (!empty($_POST)):
+         $research=$request->request->get("research");
+        $actors=$actorsRepository->findByResearch($research);
+
+        if ($actors):
+
+           $movies=$repository->findBy(['actors'=>$actors]);
+        dd($movies);
+        else:
+        $movies=$repository->findByResearch($research);
+        endif;
+        if (!$movies):
+                $this->addFlash('danger', 'aucun résultat pour votre recherche');
+                $movies = $repository->findAll();
+        endif;
+            else:
         //ici on appelle le repository de Movies afin d'effectuer une requete de SELECT (affichage)
         // on recupere toutes les entrées de movies avec la méthode findAll()
         $movies = $repository->findAll();
+            endif;
 
 
         return $this->render('front/home.html.twig', [
@@ -37,24 +65,39 @@ class FrontController extends AbstractController
 
     }
 
+
     /**
-     * @Route("/addMovies", name="addMovies")
+     * @param Request $request
+     * @param EntityManagerInterface $manager
+     * @Route("/usersMovies", name="usersMovies")
+     * @Route("/addActor/{param}", name="addActor")
+     * @IsGranted("ROLE_USER")
      */
-    public function addMovies(Request $request, EntityManagerInterface $manager)
+    public function usersMovies(Request $request, EntityManagerInterface $manager, $param = null)
     {
-        // Ici on injecte en dépendance Request (de symfony\component\HttpFoundation) afin de récupérer toutes les données chargées dans nos SUPERGLOBALES ($_POST, $_GET ...), on injecte de même l' EntityManagerInterface (de Doctrine\ORM) afin d'effectuer toute requête d'INSERT, de MODIFICATION ou de SUPPRESSION
+        $affich = false;
+        if ($param):
+            // dd('coucou');
+            $affich = true;
+        endif;
+
 
         $movie = new Movies();
-        // ici on instancie un nouvel objet vide de la classe Movies
-
         $form = $this->createForm(MoviesType::class, $movie, ['add' => true]);
-        // ici on instancie un objet de la classe Form qui attend en argument sur quel formulaire il doit se baser et le liens avec l'entité avec l'entité en second argument affin qu'il puisse effectuer les controles
-
         $form->handleRequest($request);
+        $actor = new Actors();
+        $formActor = $this->createForm(ActorsType::class, $actor);
+        $formActor->handleRequest($request);
+
+        if ($formActor->isSubmitted() && $formActor->isValid()):
+            $manager->persist($actor);
+            $manager->flush();
+            $affich = false;
+            return $this->redirectToRoute('usersMovies', ['affich' => $affich]);
+
+        endif;
 
         if ($form->isSubmitted() && $form->isValid()):
-            // condition de traitement du formulaire (l'ordre des conditions est impératif)
-
             $coverFile = $form->get('cover')->getData();
             //dd($coverFile);
             $coverName = date('YmdHis') . uniqid() . $coverFile->getClientOriginalName();
@@ -62,26 +105,118 @@ class FrontController extends AbstractController
                 $coverName);
             //dd($movie);
             $movie->setCover($coverName);
+            $movie->setCreatedBy($this->getUser());
             $manager->persist($movie);
             $manager->flush();
 
-
-            $this->addFlash('success', 'Ajout effectué avec succès');
-            return $this->redirectToRoute('listMovies');
-
-
+            return $this->redirectToRoute('listUsersMovies');
         endif;
 
-        return $this->render('front/addMovies.html.twig', [
-            'form' => $form->createView()
 
+        return $this->render('front/usersMovies.html.twig', [
+            'form' => $form->createView(),
+            'formActor' => $formActor->createView(),
+            'affich' => $affich
+        ]);
+
+    }
+
+
+    /**
+     * @Route("/listUsersMovies", name="listUsersMovies")
+     * @IsGranted("ROLE_USER")
+     */
+    public function listUsersMovies(MoviesRepository $repository)
+    {
+        $movies = $repository->findBy(['CreatedBy' => $this->getUser()]);
+
+        return $this->render('front/listUsersMovies.html.twig', [
+            'movies' => $movies
         ]);
     }
 
     /**
-     * @Route("/editMovies/{id}", name="editMovies")
+     * @Route("/detailMovie/{id}", name="detailMovie")
+     * @Route("/formReview/{id}/{param}", name="formReview")
      */
-    public function editMovies(Movies $movie, Request $request, EntityManagerInterface $manager)
+    public function detailMovie(MoviesRepository $repository, ReviewsRepository $reviewsRepository, Request $request, EntityManagerInterface $manager, $id = null, $param = null)
+    {
+        $affich = false;
+        if ($param):
+            $affich = true;
+        endif;
+
+        $movie = $repository->find($id);
+        $reviews = $reviewsRepository->findBy(['movie' => $movie], ['publish_date' => 'DESC'], 5);
+        //dd($reviews);
+        $user = $this->getUser();
+        $result = $reviewsRepository->findBy(['createdBy' => $user, 'movie' => $movie]);
+        //dd($result);
+        if (count($result) == 0):
+            $review = new Reviews();
+
+        else:
+            $affich = false;
+            $this->addFlash('danger', 'Vous avez déjà votez sur ce film');
+        endif;
+        if (!empty($_POST)):
+
+
+            $comment = $request->request->get('review');
+            $rating = $request->request->get('rating');
+
+
+            $review->setCreatedBy($user)->setComment($comment)->setPublishDate(new \DateTime())->setRating($rating)->setMovie($movie);
+            $manager->persist($review);
+            $manager->flush();
+            $this->addFlash('success', 'Merci pour votre contribution');
+            return $this->redirectToRoute('detailMovie', ['id' => $id]);
+
+
+        endif;
+
+
+        return $this->render('front/detailMovie.html.twig', [
+            'movie' => $movie,
+            'affich' => $affich,
+            'reviews' => $reviews
+        ]);
+
+    }
+
+    /**
+     * @Route("/reviews/{id}", name="reviews")
+     */
+    public function reviews(ReviewsRepository $reviewsRepository, MoviesRepository $repository, $id)
+    {
+        $movie = $repository->find($id);
+        $reviews = $reviewsRepository->findBy(['movie' => $movie], ['publish_date' => 'DESC']);
+
+        return $this->render('front/reviews.html.twig', [
+            'reviews' => $reviews
+        ]);
+    }
+
+
+
+    /**
+     * @Route("/deleteUsersMovies/{id}", name="deleteUsersMovies")
+     * @IsGranted("ROLE_USER")
+     */
+    public function deleteUsersMovies(Movies $movies, EntityManagerInterface $manager)
+    {
+        $this->addFlash('success', $movies->getTitle() . ' supprimé avec succès');
+        $manager->remove($movies);
+        $manager->flush();
+        return $this->redirectToRoute('listUsersMovies');
+
+    }
+
+    /**
+     * @Route("/editUsersMovies/{id}", name="editUsersMovies")
+     * @IsGranted("ROLE_USER")
+     */
+    public function editUsersMovies(Movies $movie, Request $request, EntityManagerInterface $manager)
     {
 
         $form = $this->createForm(MoviesType::class, $movie, ['update' => true]);
@@ -107,154 +242,137 @@ class FrontController extends AbstractController
             // on execute la ou les requetes
             $manager->flush();
             $this->addFlash('success', 'Modification effectuée avec succès');
-            return $this->redirectToRoute('listMovies');
+            return $this->redirectToRoute('listUsersMovies');
         endif;
 
 
-        return $this->render('front/editMovies.html.twig', [
+        return $this->render('front/editUsersMovies.html.twig', [
             'form' => $form->createView(),
             'movie' => $movie
 
         ]);
     }
 
+
+
+
     /**
-     * @Route("/addCategories", name="addCategories")
-     * @Route("/editCategories/{id}", name="editCategories")
+     * @Route("/addCart/{id}/{route}", name="addCart")
+     *
      */
-    public function addCategories(Request $request, EntityManagerInterface $manager, CategoriesRepository $repository, $id = null)
+    public function addCart($id, PanierService $panierService, $route)
     {
-        $ajout=false;
+        $panierService->add($id);
 
-        $categories = $repository->findAll();
+        ($panierService->getFullCart());
 
-        if (!$id):
-            $categorie = new Categories();
-            $ajout=true;
+        if ($route == 'home'):
+            return $this->redirectToRoute('home');
         else:
-            $categorie = $repository->find($id);
+            return $this->redirectToRoute('fullCart');
+        endif;
+
+    }
+
+    /**
+     * @Route("/removeCart/{id}", name="removeCart")
+     *
+     */
+    public function removeCart($id, PanierService $panierService)
+    {
+        $panierService->remove($id);
+        return $this->redirectToRoute('fullCart');
+
+
+    }
+
+    /**
+     * @Route("/deleteCart/{id}", name="deleteCart")
+     *
+     */
+    public function deleteCart($id, PanierService $panierService)
+    {
+        $panierService->delete($id);
+        return $this->redirectToRoute('fullCart');
+
+
+    }
+
+    /**
+     * @Route("/fullCart", name="fullCart")
+     * @Route("/order/{param}", name="order")
+     *
+     */
+    public function fullCart(PanierService $panierService, PricingRepository $repository, $param = null)
+    {
+        $pricings = $repository->findAll();
+        $affich = false;
+        if ($param):
+            $affich = true;
         endif;
 
 
-        $form = $this->createForm(CategoriesType::class, $categorie);
+        $fullCart = $panierService->getFullCart();
 
-        $form->handleRequest($request);
+        return $this->render('front/fullCart.html.twig', [
+            'fullCart' => $fullCart,
+            'affich' => $affich,
+            'pricings' => $pricings
+        ]);
 
-        if ($form->isSubmitted() && $form->isValid()):
-            $manager->persist($categorie);
+    }
+
+
+    /**
+     *
+     * @Route("/finalOrder/{id}", name="finalOrder")
+     * @IsGranted("ROLE_USER")
+     */
+    public function order(PricingRepository $repository, PanierService $panierService, EntityManagerInterface $manager, $id = null)
+    {
+        if (!empty($_GET['pricing'])):
+            $pricing = $repository->find($_GET['pricing']);
+            $price = $pricing->getPrice();
+            $panier = $panierService->getFullCart();
+            $count = 0;
+            foreach ($panier as $item):
+                $count += $item['quantity'];
+            endforeach;
+            $total = $count * $price;
+            $affich = true;
+            return $this->render('front/fullCart.html.twig', [
+                'affich' => $affich,
+                'total' => $total,
+                'pricings' => "",
+                'price' => $_GET['pricing']
+
+            ]);
+
+        endif;
+
+        if ($id):
+            $forfait = $repository->find($id);
+            $orders = new Orders();
+            $orders->setDate(new \DateTime())->setPricing($forfait)->setUser($this->getUser());
+            $panier = $panierService->getFullCart();
+
+            foreach ($panier as $item):
+
+                $cart = new Cart();
+                $cart->setOrders($orders)->setMovies($item['movie'])->setQuantity($item['quantity']);
+                $manager->persist($cart);
+                    $panierService->delete($item['movie']->getId());
+            endforeach;
+            $manager->persist($orders);
             $manager->flush();
-
-            if (!$id):
-                $this->addFlash('success', 'Catégorie ajoutée avec succès');
-            else:
-                $this->addFlash('success', 'Catégorie modifiée avec succès');
-            endif;
-
-            return $this->redirectToRoute('addCategories');
-        endif;
-
-        return $this->render('front/addCategories.html.twig', [
-            'form' => $form->createView(),
-            'categories' => $categories,
-            'ajout'=>$ajout
-        ]);
+            $this->addFlash('success', "Merci pour votre achat");
+            return $this->redirectToRoute('home');
 
 
-    }
-
-
-    /**
-     * @Route("/listMovies", name="listMovies")
-     */
-    public function listMovies(MoviesRepository $repository)
-    {
-        $movies = $repository->findAll();
-
-        return $this->render("front/listMovies.html.twig", [
-            'movies' => $movies
-        ]);
-    }
-
-    /**
-     * @Route("/deleteMovies/{id}", name="deleteMovies")
-     */
-    public function deleteMovies(Movies $movies, EntityManagerInterface $manager)
-    {
-        $this->addFlash('success', $movies->getTitle().' supprimé avec succès');
-        $manager->remove($movies);
-        $manager->flush();
-        return$this->redirectToRoute('listMovies');
-
-    }
-
-    /**
-     * @Route("/deleteCategories/{id}", name="deleteCategories")
-     */
-    public function deleteCategories(Categories $categories, EntityManagerInterface $manager)
-    {
-        $this->addFlash('success', 'Catégorie supprimé avec succès');
-        $manager->remove($categories);
-        $manager->flush();
-        return$this->redirectToRoute('addCategories');
-
-    }
-
-    /**
-     * @Route("/actors", name="actors")
-     * @Route("/editActors/{id}", name="editActors")
-     */
-    public function Actors(ActorsRepository $repository, EntityManagerInterface $manager, Request $request, $id=null)
-    {
-        $ajout=false;
-
-        $actors = $repository->findAll();
-
-        if (!$id):
-            $actor = new actors();
-            $ajout=true;
-        else:
-            $actor = $repository->find($id);
         endif;
 
 
-        $form = $this->createForm(ActorsType::class, $actor);
-
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()):
-            $manager->persist($actor);
-            $manager->flush();
-
-            if (!$id):
-                $this->addFlash('success', 'Acteur ajouté avec succès');
-            else:
-                $this->addFlash('success', 'Acteur modifié avec succès');
-            endif;
-
-            return $this->redirectToRoute('actors');
-        endif;
-
-
-
-
-        return $this->render('front/actors.html.twig',[
-            'form'=>$form->createView(),
-            'ajout'=>$ajout,
-            'actors'=>$actors
-        ]);
     }
 
-
-    /**
-     * @Route("/deleteActors/{id}", name="deleteActors")
-     */
-    public function deleteActors(Actors $actors, EntityManagerInterface $manager)
-    {
-        $this->addFlash('success', 'Acteur supprimé avec succès');
-        $manager->remove($actors);
-        $manager->flush();
-        return$this->redirectToRoute('actors');
-
-    }
 
 }

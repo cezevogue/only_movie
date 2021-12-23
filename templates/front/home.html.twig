@@ -35,11 +35,15 @@
             </div>
             <ul class="list-group list-group-flush">
                 <li class="list-group-item">réalisateur: {{ movie.director }}</li>
-                <li class="list-group-item">Dapibus ac facilisis in</li>
-                <li class="list-group-item">Vestibulum at eros</li>
+                {% for actor in movie.actors %}
+                    <li class="list-group-item">{{ actor.firstname }} {{ actor.lastname }}</li>
+                {% endfor %}
+
             </ul>
             <div class="card-body">
-                <a href="#" class="card-link">Voir plus</a>
+                <a href="{{ path('detailMovie', {id:movie.id}) }}" class="card-link btn btn-success">Voir plus</a>
+                <a href="{{ path('addCart', {id: movie.id, route : 'home'}) }}" class="card-link btn btn-primary">Ajouter au panier</a>
+
             </div>
             <div class="card-footer text-muted">
                Sortie en salle: {{ movie.releaseDate | date('d/m/Y') }}
