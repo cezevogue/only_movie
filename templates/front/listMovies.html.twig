@@ -45,11 +45,11 @@
             <td><img src="{{ asset('uploads/') }}{{ movie.cover }}" width="50" alt=""></td>
             <td>{{ movie.categories.name }}</td>
             <td>{% for actor in movie.actors %}
-                    {{ actor.firstname }} {{ actor.lastname }}
+                    - {{ actor.firstname }} {{ actor.lastname }}<br>
                 {% endfor %}</td>
             <td>
                 <a href="{{ path('editMovies', {id: movie.id}) }}" class="btn btn-success">Modifier</a>
-                <a href="{{ path('deleteMovies', { id: movie.id }) }}" onclick="return confirm('Etes vous sûr de vouloir supprimer ce film ?')" class="btn btn-danger">Supprimer</a>
+                <a href="{{ path('deleteMovies', { id: movie.id }) }}" onclick="return confirm('Etes vous sûr de vouloir supprimer ce film ?')" class="btn btn-danger mt-2">Supprimer</a>
             </td>
             {% endfor %}
         </tr>
